@@ -51,9 +51,11 @@ jobs:
           # Exclude .git, .github, dev folder, build script, etc.
           rsync -av --exclude='.git' --exclude='.github' --exclude='dev' --exclude='build_structure.py' --exclude='*.zip' --exclude='.gitignore' ./ "${ADDON_ID}/"
           echo "Creating ZIP file: ${ZIP_FILENAME}"
-          zip -r -q "../${ZIP_FILENAME}" "${ADDON_ID}/"
-          echo "ZIP file created: ../${ZIP_FILENAME}"
-        working-directory: ./ # Run commands from repo root, zip goes one level up
+          # --- CORRECTED COMMAND (Removed ../) ---
+          zip -r -q "${ZIP_FILENAME}" "${ADDON_ID}/"
+          # --- Corresponding echo update ---
+          echo "ZIP file created: ${ZIP_FILENAME}"
+        working-directory: ./ # Run commands from repo root
 
       # 5. Upload the generated ZIP file as an asset to the GitHub Release
       - name: Upload Release Asset
