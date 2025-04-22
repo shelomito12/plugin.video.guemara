@@ -1,0 +1,12 @@
+https://kodi.wiki/view/Add-on_development
+
+Solution to Kodi playback issue:
+https://forum.kodi.tv/showthread.php?tid=379256&pid=3218133#pid3218133
+
+DefaultAddonsSearch.png:  https://github.com/xbmc/xbmc/blob/ada950dd4492d095b441d54570cbf613612bc746/addons/skin.estuary/media/DefaultAddonsSearch.png
+
+DefaultMovies.png: https://github.com/xbmc/xbmc/blob/ada950dd4492d095b441d54570cbf613612bc746/addons/skin.estuary/media/DefaultMovies.png
+
+DefaultTVShows.png: https://github.com/xbmc/xbmc/blob/ada950dd4492d095b441d54570cbf613612bc746/addons/skin.estuary/media/DefaultTVShows.png
+
+DefaultVideoPlaylists.png: https://github.com/xbmc/xbmc/blob/ada950dd4492d095b441d54570cbf613612bc746/addons/skin.estuary/media/DefaultVideoPlaylists.png

@@ -1,0 +1,32 @@
+<addon id="plugin.video.guemara"
+       name="Guemará en Español"
+       version="1.0.0"
+       provider-name="shelomito12">
+  <requires>
+    <import addon="xbmc.python" version="3.0.0"/>
+  </requires>
+
+  <extension point="xbmc.python.pluginsource" library="addon.py">
+    <provides>video</provides>
+  </extension>
+
+  <extension point="xbmc.addon.metadata">
+    <summary lang="es">Estudio del Talmud en Español</summary>
+    <description lang="es">Estudio popular para personas de toda condición que forman el mundo judío hispanoparlante</description>
+    <platform>all</platform>
+    <language>es</language>
+    <license>GPL-3.0-or-later</license>
+	<website>https://github.com/shelomito12/plugin.video.guemara</website>
+    <source>https://github.com/shelomito12/plugin.video.guemara</source>
+    <assets>
+      <icon>resources/images/icon.png</icon>
+      <fanart>resources/images/fanart.jpg</fanart>
+	  <screenshot>resources/images/zeraim.png</screenshot>
+      <screenshot>resources/images/moed.png</screenshot>
+      <screenshot>resources/images/nashim.png</screenshot>
+      <screenshot>resources/images/nezikin.png</screenshot>
+      <screenshot>resources/images/kodashim.png</screenshot>
+      <screenshot>resources/images/taharot.png</screenshot>
+    </assets>
+  </extension>
+</addon>
