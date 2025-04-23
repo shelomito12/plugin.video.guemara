@@ -29,7 +29,6 @@ jobs:
       - name: Upload ZIP to GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          name: ${{ env.ZIP_NAME }}
           tag_name: ${{ env.VERSION }}
           files: ./${{ env.ZIP_NAME }}
         env:
@@ -43,21 +42,18 @@ jobs:
           path: site
           persist-credentials: false
 
-      - name: Copy new ZIP to Pages repo
+      - name: Copy ZIP and generate index.html in root of Pages repo
         run: |
           cp "${ZIP_NAME}" site/
+          cd site
+          LATEST_ZIP="${ZIP_NAME}"
+          echo '<!DOCTYPE html>' > index.html
+          echo "<a href=\"$LATEST_ZIP\">$LATEST_ZIP</a>" >> index.html
 
-      - name: Keep only latest 5 ZIPs
+      - name: Keep only latest 5 ZIPs in root
         run: |
           cd site
           ls -tp *.zip | grep -v '/$' | tail -n +6 | xargs -r rm --
-
-      - name: Generate index.html with only latest ZIP
-        run: |
-          cd site
-          LATEST_ZIP=$(ls -1 *.zip | sort -Vr | head -n 1)
-          echo '<!DOCTYPE html>' > index.html
-          echo "<a href=\"$LATEST_ZIP\">$LATEST_ZIP</a>" >> index.html
 
       - name: Commit and push changes to GitHub Pages
         run: |
