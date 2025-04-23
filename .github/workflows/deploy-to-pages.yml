@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: shelomito12/shelomito12.github.io
-          token: ${{ secrets.PAGES_DEPLOY_TOKEN }}
+          token: ${{ secrets.GH_RELEASE_PAT }}
           path: site
 
       - name: Copy ZIP to pages repo
