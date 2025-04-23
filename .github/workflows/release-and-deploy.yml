@@ -1,37 +1,39 @@
-name: Deploy latest ZIP to GitHub Pages
+name: Release and Deploy Addon ZIP
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
 
 jobs:
-  deploy:
+  release_and_deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout addon repo
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set addon ID and version
-        shell: bash
+      - name: Extract addon ID and tag version
         run: |
           ADDON_ID=$(grep -Po 'id="\K[^"]+' addon.xml)
-          VERSION=$(basename "${GITHUB_REF}")
+          VERSION=${GITHUB_REF#refs/tags/}
+          ZIP_NAME="${ADDON_ID}-${VERSION}.zip"
           echo "ADDON_ID=$ADDON_ID" >> $GITHUB_ENV
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-      - name: Create ZIP
-        run: |
-          ZIP_NAME="${ADDON_ID}-${VERSION}.zip"
-          zip -r "$ZIP_NAME" * .[^.]* -x '*.git*' '*.github*'
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+
+      - name: Create ZIP file
+        run: |
+          zip -r "${ZIP_NAME}" * .[^.]* -x '*.git*' '*.github*'
 
       - name: Upload ZIP to GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: ${{ env.ZIP_NAME }}
+          name: ${{ env.ZIP_NAME }}
+          tag_name: ${{ env.VERSION }}
+          files: ./${{ env.ZIP_NAME }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_RELEASE_PAT }}
 
       - name: Clone GitHub Pages repo
         uses: actions/checkout@v3
@@ -40,7 +42,7 @@ jobs:
           token: ${{ secrets.GH_RELEASE_PAT }}
           path: site
 
-      - name: Copy new ZIP
+      - name: Copy new ZIP to Pages repo
         run: |
           cp "${ZIP_NAME}" site/
 
@@ -56,7 +58,7 @@ jobs:
           echo '<!DOCTYPE html>' > index.html
           echo "<a href=\"$LATEST_ZIP\">$LATEST_ZIP</a>" >> index.html
 
-      - name: Commit and push changes
+      - name: Commit and push changes to GitHub Pages
         run: |
           cd site
           git config user.name "github-actions[bot]"
