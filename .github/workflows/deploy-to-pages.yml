@@ -16,7 +16,7 @@ jobs:
         shell: bash
         run: |
           ADDON_ID=$(grep -Po 'id="\K[^"]+' addon.xml)
-          VERSION=$(echo "${GITHUB_REF}" | sed -E 's|refs/tags/v?||')
+          VERSION=$(basename "${GITHUB_REF}")
           echo "ADDON_ID=$ADDON_ID" >> $GITHUB_ENV
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
