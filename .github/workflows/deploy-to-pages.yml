@@ -22,7 +22,7 @@ jobs:
       - name: Create ZIP
         run: |
           ZIP_NAME="${ADDON_ID}-${VERSION}.zip"
-          zip -r "$ZIP_NAME" * .[^.]* -x '*.git*' '*.github*'
+          zip -r "../$ZIP_NAME" * .[^.]* -x '*.git*' '*.github*'
 
       - name: Clone GitHub Pages repo
         uses: actions/checkout@v3
@@ -31,19 +31,21 @@ jobs:
           token: ${{ secrets.GH_RELEASE_PAT }}
           path: site
 
-      - name: Purge old ZIPs (keep 5 newest)
+      - name: Copy new ZIP
         run: |
-          mkdir -p site
-          cd site
-          rm -f *.zip
-          cd ..
+          cp "../${ADDON_ID}-${VERSION}.zip" site/
 
-      - name: Copy new ZIP and generate index.html
+      - name: Keep only latest 5 ZIPs
         run: |
-          cp "${ADDON_ID}-${VERSION}.zip" site/
           cd site
+          ls -tp *.zip | grep -v '/$' | tail -n +6 | xargs -r rm --
+
+      - name: Generate index.html with only latest ZIP
+        run: |
+          cd site
+          LATEST_ZIP=$(ls -1 *.zip | sort -Vr | head -n 1)
           echo '<!DOCTYPE html>' > index.html
-          echo "<a href=\"${ADDON_ID}-${VERSION}.zip\">${ADDON_ID}-${VERSION}.zip</a>" >> index.html
+          echo "<a href=\"$LATEST_ZIP\">$LATEST_ZIP</a>" >> index.html
 
       - name: Commit and push changes
         run: |
@@ -51,5 +53,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
-          git commit -m "Deploy ${ADDON_ID}-${VERSION}.zip"
+          git commit -m "Deploy ${{ env.ADDON_ID }}-${{ env.VERSION }}.zip"
           git push
