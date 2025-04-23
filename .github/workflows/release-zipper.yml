@@ -14,9 +14,11 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Extract tag name (version)
+        id: extract_tag
         run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: Extract addon ID from addon.xml
+        id: extract_addon
         run: |
           ADDON_ID=$(grep -Po 'id="\K[^"]+' addon.xml)
           echo "ADDON_ID=$ADDON_ID" >> $GITHUB_ENV
