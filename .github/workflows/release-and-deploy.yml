@@ -41,6 +41,7 @@ jobs:
           repository: shelomito12/shelomito12.github.io
           token: ${{ secrets.GH_RELEASE_PAT }}
           path: site
+          persist-credentials: false
 
       - name: Copy new ZIP to Pages repo
         run: |
