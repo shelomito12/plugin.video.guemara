@@ -29,6 +29,7 @@ jobs:
       - name: Upload ZIP to GitHub Release
         uses: softprops/action-gh-release@v1
         with:
+          name: Release ${{ env.VERSION }}
           tag_name: ${{ env.VERSION }}
           files: ./${{ env.ZIP_NAME }}
         env:
