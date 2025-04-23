@@ -1,30 +1,28 @@
-name: Deploy to GitHub Pages Repo
+name: Deploy to GitHub Pages
 
 on:
-  workflow_run:
-    workflows: ["Release Addon ZIP"]
-    types:
-      - completed
+  release:
+    types: [published]
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout this repo
+      - name: Checkout addon repo
         uses: actions/checkout@v3
 
-      - name: Get tag name
-        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+      - name: Set addon ID and version
+        run: |
+          ADDON_ID=$(grep -Po 'id="\K[^"]+' addon.xml)
+          echo "ADDON_ID=$ADDON_ID" >> $GITHUB_ENV
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Download artifact from release
-        uses: robinraju/release-downloader@v1.8
-        with:
-          repository: ${{ github.repository }}
-          tag: ${{ github.event.workflow_run.head_branch }}
-          fileName: "*.zip"
-          out-file-path: "./dist"
+      - name: Create ZIP file
+        run: |
+          ZIP_NAME="${ADDON_ID}-${VERSION}.zip"
+          zip -r "$ZIP_NAME" * .[^.]* -x '*.git*' '*.github*'
 
       - name: Clone GitHub Pages repo
         uses: actions/checkout@v3
@@ -33,19 +31,24 @@ jobs:
           token: ${{ secrets.PAGES_DEPLOY_TOKEN }}
           path: site
 
-      - name: Copy zip file
+      - name: Copy ZIP to pages repo
         run: |
-          ZIP_NAME=$(ls dist/*.zip | xargs -n 1 basename)
-          VERSION="${ZIP_NAME##*-}"           # 1.0.0.zip
-          VERSION="${VERSION%.zip}"           # remove .zip
-          mkdir -p site/zips/plugin.video.guemara/$VERSION
-          cp dist/*.zip site/zips/plugin.video.guemara/$VERSION/plugin.video.guemara.zip
+          mkdir -p site/zips/${{ env.ADDON_ID }}
+          cp "${{ env.ADDON_ID }}-${{ env.VERSION }}.zip" "site/zips/${{ env.ADDON_ID }}/"
 
-      - name: Push to GitHub Pages
+      - name: Generate latest index.html
+        run: |
+          cd site/zips/${{ env.ADDON_ID }}
+          LATEST_ZIP=$(ls -1 plugin.video.guemara-*.zip | sort -Vr | head -n 1)
+          echo "<ul>" > index.html
+          echo "  <li><a href=\"$LATEST_ZIP\">$LATEST_ZIP</a></li>" >> index.html
+          echo "</ul>" >> index.html
+
+      - name: Commit and push
         run: |
           cd site
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
-          git commit -m "Add release $VERSION"
+          git commit -m "Add release ${{ env.VERSION }}"
           git push
