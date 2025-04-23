@@ -33,4 +33,4 @@ jobs:
           tag_name: ${{ env.TAG_NAME }}
           files: ./${{ env.ADDON_ID }}-${{ env.TAG_NAME }}.zip
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_RELEASE_PAT }}
