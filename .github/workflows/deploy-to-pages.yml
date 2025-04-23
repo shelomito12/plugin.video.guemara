@@ -16,7 +16,7 @@ jobs:
         run: |
           ADDON_ID=$(grep -Po 'id="\K[^"]+' addon.xml)
           echo "ADDON_ID=$ADDON_ID" >> $GITHUB_ENV
-          VERSION=${GITHUB_REF#refs/tags/v}
+          VERSION=$(echo "${GITHUB_REF#refs/tags/}" | sed 's/^v//')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Create ZIP file
