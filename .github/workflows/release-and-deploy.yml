@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+env:
+  VERSION: ${{ github.ref_name }}
+
 jobs:
   release_and_deploy:
     runs-on: ubuntu-latest
@@ -13,18 +16,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Extract addon ID and tag version
+      - name: Extract addon ID and ZIP name
         run: |
           ADDON_ID=$(grep -Po 'id="\K[^"]+' addon.xml)
-          VERSION=$(basename "${GITHUB_REF}")
           ZIP_NAME="${ADDON_ID}-${VERSION}.zip"
           echo "ADDON_ID=$ADDON_ID" >> $GITHUB_ENV
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
 
       - name: Create ZIP file
         run: |
-          zip -r "${ZIP_NAME}" * .[^.]* -x '*.git*' '*.github*'
+          zip -r "$ZIP_NAME" * .[^.]* -x '*.git*' '*.github*'
 
       - name: Upload ZIP to GitHub Release
         uses: softprops/action-gh-release@v1
@@ -45,11 +46,10 @@ jobs:
 
       - name: Copy ZIP and generate index.html in root of Pages repo
         run: |
-          cp "${ZIP_NAME}" site/
+          cp "$ZIP_NAME" site/
           cd site
-          LATEST_ZIP="${ZIP_NAME}"
           echo '<!DOCTYPE html>' > index.html
-          echo "<a href=\"$LATEST_ZIP\">$LATEST_ZIP</a>" >> index.html
+          echo "<a href=\"$ZIP_NAME\">$ZIP_NAME</a>" >> index.html
 
       - name: Keep only latest 5 ZIPs in root
         run: |
