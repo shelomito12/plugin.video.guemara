@@ -16,7 +16,7 @@ jobs:
       - name: Extract addon ID and tag version
         run: |
           ADDON_ID=$(grep -Po 'id="\K[^"]+' addon.xml)
-          VERSION=${GITHUB_REF#refs/tags/}
+          VERSION=$(basename "${GITHUB_REF}")
           ZIP_NAME="${ADDON_ID}-${VERSION}.zip"
           echo "ADDON_ID=$ADDON_ID" >> $GITHUB_ENV
           echo "VERSION=$VERSION" >> $GITHUB_ENV
