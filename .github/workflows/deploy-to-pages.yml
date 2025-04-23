@@ -36,13 +36,11 @@ jobs:
           mkdir -p site/zips/${{ env.ADDON_ID }}
           cp "${{ env.ADDON_ID }}-${{ env.VERSION }}.zip" "site/zips/${{ env.ADDON_ID }}/"
 
-      - name: Generate latest index.html
+      - name: Generate index.html (latest version only)
         run: |
           cd site/zips/${{ env.ADDON_ID }}
-          LATEST_ZIP=$(ls -1 plugin.video.guemara-*.zip | sort -Vr | head -n 1)
-          echo "<ul>" > index.html
-          echo "  <li><a href=\"$LATEST_ZIP\">$LATEST_ZIP</a></li>" >> index.html
-          echo "</ul>" >> index.html
+          ZIP_FILE="${{ env.ADDON_ID }}-${{ env.VERSION }}.zip"
+          echo "<html><body><a href=\"$ZIP_FILE\">$ZIP_FILE</a></body></html>" > index.html
 
       - name: Commit and push
         run: |
