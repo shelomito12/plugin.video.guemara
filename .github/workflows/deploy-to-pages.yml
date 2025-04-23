@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Deploy latest ZIP to GitHub Pages
 
 on:
   release:
@@ -16,10 +16,10 @@ jobs:
         run: |
           ADDON_ID=$(grep -Po 'id="\K[^"]+' addon.xml)
           echo "ADDON_ID=$ADDON_ID" >> $GITHUB_ENV
-          VERSION=$(echo "${GITHUB_REF#refs/tags/}" | sed 's/^v//')
+          VERSION=${GITHUB_REF#refs/tags/v}
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Create ZIP file
+      - name: Create ZIP
         run: |
           ZIP_NAME="${ADDON_ID}-${VERSION}.zip"
           zip -r "$ZIP_NAME" * .[^.]* -x '*.git*' '*.github*'
@@ -31,22 +31,25 @@ jobs:
           token: ${{ secrets.GH_RELEASE_PAT }}
           path: site
 
-      - name: Copy ZIP to pages repo
+      - name: Purge old ZIPs (keep 5 newest)
         run: |
-          mkdir -p site/zips/${{ env.ADDON_ID }}
-          cp "${{ env.ADDON_ID }}-${{ env.VERSION }}.zip" "site/zips/${{ env.ADDON_ID }}/"
+          mkdir -p site
+          cd site
+          rm -f *.zip
+          cd ..
 
-      - name: Generate index.html (latest version only)
+      - name: Copy new ZIP and generate index.html
         run: |
-          cd site/zips/${{ env.ADDON_ID }}
-          ZIP_FILE="${{ env.ADDON_ID }}-${{ env.VERSION }}.zip"
-          echo "<html><body><a href=\"$ZIP_FILE\">$ZIP_FILE</a></body></html>" > index.html
+          cp "${ADDON_ID}-${VERSION}.zip" site/
+          cd site
+          echo '<!DOCTYPE html>' > index.html
+          echo "<a href=\"${ADDON_ID}-${VERSION}.zip\">${ADDON_ID}-${VERSION}.zip</a>" >> index.html
 
-      - name: Commit and push
+      - name: Commit and push changes
         run: |
           cd site
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
-          git commit -m "Add release ${{ env.VERSION }}"
+          git commit -m "Deploy ${ADDON_ID}-${VERSION}.zip"
           git push
