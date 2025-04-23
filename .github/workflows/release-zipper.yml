@@ -1,69 +1,36 @@
-name: Create Addon Release ZIP
+name: Release Addon ZIP
 
-# Trigger this workflow when a new release is published on GitHub
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # 1. Checkout the code for the specific tag/release
       - name: Checkout code
-        uses: actions/checkout@v4 # Use latest version of checkout action
+        uses: actions/checkout@v3
 
-      # 2. Set up Python (Optional but good practice if needed for scripts later)
-      # - name: Set up Python
-      #   uses: actions/setup-python@v5
-      #   with:
-      #     python-version: '3.x'
+      - name: Get tag name
+        id: tag
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      # 3. Get Addon Info (ID and Version) - Assuming version matches the Git tag name
-      #    Example: Tag 'v1.2.3' means version='1.2.3'
-      #    We need the Addon ID from addon.xml
-      - name: Get Addon Info
-        id: addon_info
+      - name: Set addon ID
+        id: addon
         run: |
-          # Extract addon ID from addon.xml using grep/sed (works on ubuntu runner)
-          ADDON_ID=$(grep -oP 'id="\K[^"]+' addon.xml)
-          # Get version from the Git tag name (strip 'v' prefix if present)
-          TAG_NAME="${{ github.ref_name }}"
-          ADDON_VERSION=${TAG_NAME#v} # Removes 'v' prefix if it exists
-          echo "ADDON_ID=${ADDON_ID}" >> $GITHUB_OUTPUT
-          echo "ADDON_VERSION=${ADDON_VERSION}" >> $GITHUB_OUTPUT
-          echo "ZIP_FILENAME=${ADDON_ID}-${ADDON_VERSION}.zip" >> $GITHUB_OUTPUT
-          echo "Addon ID: ${ADDON_ID}"
-          echo "Addon Version: ${ADDON_VERSION}"
-          echo "Zip Filename: ${ADDON_ID}-${ADDON_VERSION}.zip"
+          ADDON_ID=$(grep -Po 'id="\K[^"]+' addon.xml)
+          echo "ADDON_ID=${ADDON_ID}" >> $GITHUB_ENV
 
-      # 4. Create the ZIP file with the correct internal structure
-      #    The ZIP must contain a single folder named after the addon ID,
-      #    and all addon files must be inside that folder.
-      - name: Build Addon ZIP
+      - name: Create zip file
         run: |
-          ADDON_ID="${{ steps.addon_info.outputs.ADDON_ID }}"
-          ZIP_FILENAME="${{ steps.addon_info.outputs.ZIP_FILENAME }}"
-          echo "Creating staging directory: ${ADDON_ID}"
-          mkdir "${ADDON_ID}"
-          echo "Copying addon files..."
-          # Copy necessary files - adjust patterns as needed
-          # Exclude .git, .github, dev folder, build script, etc.
-          rsync -av --exclude='.git' --exclude='.github' --exclude='dev' --exclude='build_structure.py' --exclude='*.zip' --exclude='.gitignore' ./ "${ADDON_ID}/"
-          echo "Creating ZIP file: ${ZIP_FILENAME}"
-          # --- CORRECTED COMMAND (Removed ../) ---
-          zip -r -q "${ZIP_FILENAME}" "${ADDON_ID}/"
-          # --- Corresponding echo update ---
-          echo "ZIP file created: ${ZIP_FILENAME}"
-        working-directory: ./ # Run commands from repo root
+          zip -r "${{ env.ADDON_ID }}-${{ env.TAG_NAME }}.zip" * .[^.]* -x "*.git*" "*.github*"
 
-      # 5. Upload the generated ZIP file as an asset to the GitHub Release
       - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ env.ADDON_ID }}-${{ env.TAG_NAME }}.zip
+          tag_name: ${{ env.TAG_NAME }}
+          files: ./${{ env.ADDON_ID }}-${{ env.TAG_NAME }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }} # URL from the release event
-          asset_path: ./${{ steps.addon_info.outputs.ZIP_FILENAME }} # Path to the ZIP file created
-          asset_name: ${{ steps.addon_info.outputs.ZIP_FILENAME }} # Name for the asset
-          asset_content_type: application/zip
