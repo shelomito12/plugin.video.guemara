@@ -8,29 +8,29 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Get tag name
-        id: tag
+      - name: Extract tag name (version)
         run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: Set addon ID
-        id: addon
+      - name: Extract addon ID from addon.xml
         run: |
           ADDON_ID=$(grep -Po 'id="\K[^"]+' addon.xml)
-          echo "ADDON_ID=${ADDON_ID}" >> $GITHUB_ENV
+          echo "ADDON_ID=$ADDON_ID" >> $GITHUB_ENV
 
-      - name: Create zip file
+      - name: Create ZIP file
         run: |
-          zip -r "${{ env.ADDON_ID }}-${{ env.TAG_NAME }}.zip" * .[^.]* -x "*.git*" "*.github*"
+          ZIP_NAME="${ADDON_ID}-${TAG_NAME}.zip"
+          zip -r "$ZIP_NAME" * .[^.]* -x '*.git*' '*.github*'
 
-      - name: Upload Release Asset
+      - name: Upload ZIP to GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           name: ${{ env.ADDON_ID }}-${{ env.TAG_NAME }}.zip
           tag_name: ${{ env.TAG_NAME }}
           files: ./${{ env.ADDON_ID }}-${{ env.TAG_NAME }}.zip
         env:
-          token: ${{ secrets.GH_RELEASE_PAT }}
+          GITHUB_TOKEN: ${{ secrets.GH_RELEASE_PAT }}
