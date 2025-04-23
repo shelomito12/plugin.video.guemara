@@ -42,7 +42,6 @@ jobs:
           repository: shelomito12/shelomito12.github.io
           token: ${{ secrets.GH_RELEASE_PAT }}
           path: site
-          persist-credentials: true
 
       - name: Copy ZIP and generate index.html in root of Pages repo
         run: |
