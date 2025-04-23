@@ -27,7 +27,6 @@ jobs:
         run: |
           zip -r "${ZIP_NAME}" * .[^.]* -x '*.git*' '*.github*'
           
-
       - name: Upload ZIP to GitHub Release
         uses: softprops/action-gh-release@v1
         with:
@@ -50,11 +49,10 @@ jobs:
           cd site
           echo '<!DOCTYPE html>' > index.html
           echo "<a href=\"$ZIP_NAME\">$ZIP_NAME</a>" >> index.html
-          mv "${ZIP_NAME}" ../../
-          mv index.html ../../
 
       - name: Keep only latest 5 ZIPs in root
         run: |
+          cd site
           ls -tp *.zip | grep -v '/$' | tail -n +6 | xargs -r rm --
 
       - name: Commit and push changes to GitHub Pages
