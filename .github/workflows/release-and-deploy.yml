@@ -25,29 +25,29 @@ jobs:
 
       - name: Create ZIP file
         run: |
-          zip -r "${ZIP_NAME}" * .[^.]* -x '*.git*' '*.github*'
+          zip -r "${ZIP_NAME}" * .[^.]* -x '*.git*' '*.github*' 'zips/*' '*.zip'
 
       - name: Clone GitHub Pages repo
         uses: actions/checkout@v4
         with:
           repository: shelomito12/shelomito12.github.io
           token: ${{ secrets.GH_RELEASE_PAT }}
-          path: gh-pages
+          path: site
 
       - name: Copy ZIP and generate index.html in root of Pages repo
         run: |
-          $PWD
-          cp "${ZIP_NAME}" gh-pages/
-          echo -e '<!DOCTYPE html>\n<a href="'${ZIP_NAME}'">'${ZIP_NAME}'</a>' > gh-pages/index.html
+          cp "$ZIP_NAME" site/
+          cd site
+		  echo -e '<!DOCTYPE html>\n<a href="'${ZIP_NAME}'">'${ZIP_NAME}'</a>' > index.html
 
       - name: Keep only latest 5 ZIPs in root
         run: |
-          cd gh-pages/
+          cd site
           ls -tp *.zip | grep -v '/$' | tail -n +6 | xargs -r rm --
 
       - name: Commit and push changes to GitHub Pages
-        working-directory: gh-pages
         run: |
+          cd site
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
