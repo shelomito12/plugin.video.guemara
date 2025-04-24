@@ -38,7 +38,7 @@ jobs:
         run: |
           cp "$ZIP_NAME" site/
           cd site
-	  echo -e '<!DOCTYPE html>\n<a href="'${ZIP_NAME}'">'${ZIP_NAME}'</a>' > index.html
+          echo -e '<!DOCTYPE html>\n<a href="'${ZIP_NAME}'">'${ZIP_NAME}'</a>' > index.html
 
       - name: Keep only latest 5 ZIPs in root
         run: |
