@@ -37,27 +37,22 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_RELEASE_PAT }}
 
       - name: Clone GitHub Pages repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: shelomito12/shelomito12.github.io
           token: ${{ secrets.GH_RELEASE_PAT }}
-          path: site
 
       - name: Copy ZIP and generate index.html in root of Pages repo
         run: |
-          cp "$ZIP_NAME" site/
-          cd site
-          echo '<!DOCTYPE html>' > index.html
-          echo "<a href=\"$ZIP_NAME\">$ZIP_NAME</a>" >> index.html
+          cp "../${ZIP_NAME}" .
+          echo -e '<!DOCTYPE html>\n<a href="'${ZIP_NAME}'">'${ZIP_NAME}'</a>' > index.html
 
       - name: Keep only latest 5 ZIPs in root
         run: |
-          cd site
           ls -tp *.zip | grep -v '/$' | tail -n +6 | xargs -r rm --
 
       - name: Commit and push changes to GitHub Pages
         run: |
-          cd site
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
