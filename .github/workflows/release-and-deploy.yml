@@ -22,13 +22,27 @@ jobs:
       - name: Extract addon ID and ZIP name
         run: |
           ADDON_ID=$(grep -Po 'id="\K[^"]+' addon.xml)
-          ZIP_NAME="${ADDON_ID}-${VERSION}.zip"
+          ZIP_NAME="${ADDON_ID}.${VERSION#v}.zip"
           echo "ADDON_ID=$ADDON_ID" >> $GITHUB_ENV
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
 
+      - name: Extract and update addon.xml version
+        run: |
+          OLD_VERSION=$(grep -Po 'version="\K[^"]+' addon.xml | head -n 1)
+          echo "Old version: $OLD_VERSION"
+          VERSION_NUM="${VERSION#v}"
+          sed -i "0,/version=\"$OLD_VERSION\"/s/version=\"$OLD_VERSION\"/version=\"$VERSION_NUM\"/" addon.xml
+          
+      - name: Generate addon.xml.md5
+        run: |
+          md5sum addon.xml | awk '{ print $1 }' > addon.xml.md5
+
       - name: Create ZIP file
         run: |
-          zip -r "${ZIP_NAME}" * .[^.]* -x '*.git*' '*.github*' 'zips/*' '*.zip'
+          ADDON_DIR="$ADDON_ID"
+          mkdir -p "$ADDON_DIR"
+          rsync -a --delete --exclude ".git" --exclude ".github" --exclude "zips" ./ "$ADDON_DIR/"
+          zip -r "$ZIP_NAME" "$ADDON_DIR"
 
       - name: Clone GitHub Pages repo
         uses: actions/checkout@v4
@@ -51,7 +65,7 @@ jobs:
       - name: Generate index.html in root of Pages repo
         run: |
           cd site
-          echo -e '<!DOCTYPE html>\n<a href="'${ZIP_NAME}'">'${ZIP_NAME}'</a>' > index.html
+          echo -e '<!DOCTYPE html>\n<a href="'${ZIP_NAME}'">'${ZIP_NAME}'</a>\n</html>' > index.html
 
       - name: Commit and push changes to GitHub Pages
         run: |
