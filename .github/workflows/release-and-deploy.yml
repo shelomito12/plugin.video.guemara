@@ -37,16 +37,21 @@ jobs:
           token: ${{ secrets.GH_RELEASE_PAT }}
           path: site
 
-      - name: Copy ZIP and generate index.html in root of Pages repo
+      - name: Move existing ZIPs to archive and copy new ZIP
         run: |
+          mkdir -p site/archives
+          mv site/*.zip site/archives/ 2>/dev/null || true
           cp "$ZIP_NAME" site/
+      
+      - name: Cleanup archives, keeping only latest 3 ZIPs
+        run: |
+          cd site/archives
+          ls -tp *.zip 2>/dev/null | grep -v '/$' | tail -n +4 | xargs -r rm --
+      
+      - name: Generate index.html in root of Pages repo
+        run: |
           cd site
           echo -e '<!DOCTYPE html>\n<a href="'${ZIP_NAME}'">'${ZIP_NAME}'</a>' > index.html
-
-      - name: Keep only latest 5 ZIPs in root
-        run: |
-          cd site
-          ls -tp *.zip | grep -v '/$' | tail -n +6 | xargs -r rm --
 
       - name: Commit and push changes to GitHub Pages
         run: |
