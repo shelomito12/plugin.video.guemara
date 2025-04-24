@@ -44,7 +44,8 @@ jobs:
 
       - name: Copy ZIP and generate index.html in root of Pages repo
         run: |
-          cp "../${ZIP_NAME}" .
+          $PWD
+          cp "${ZIP_NAME}" .
           echo -e '<!DOCTYPE html>\n<a href="'${ZIP_NAME}'">'${ZIP_NAME}'</a>' > index.html
 
       - name: Keep only latest 5 ZIPs in root
